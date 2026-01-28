@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import TypingText from '../components/TypingText';
 import { AuthContext } from '../contexts/AuthContext';
 
 const Register = () => {
@@ -81,25 +82,157 @@ const Register = () => {
     }
   };
 
+  const featureContainer = {
+    hidden: {},
+    show: {
+      transition: { staggerChildren: 0.2, delayChildren: 0.3 }
+    }
+  };
+
+  const featureItem = {
+    hidden: { opacity: 0, x: -16 },
+    show: { opacity: 1, x: 0, transition: { duration: 0.5, ease: 'anticipate' } }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-dark-400 px-4 sm:px-6 lg:px-8">
-      <motion.div 
-        className="max-w-md w-full space-y-8 p-8 bg-dark-300 rounded-xl shadow-xl"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
-            Create your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-400">
-            Or{' '}
-            <Link to="/login" className="font-medium text-primary-500 hover:text-primary-400">
-              sign in to your existing account
-            </Link>
-          </p>
-        </div>
+    <div className="min-h-screen bg-dark-400 px-4 sm:px-6 lg:px-10">
+      <div className="min-h-screen max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-16 items-center">
+        <motion.div
+          className="relative space-y-8 overflow-hidden rounded-2xl p-2"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <motion.div
+            className="absolute inset-0 rounded-2xl opacity-60"
+            style={{
+              backgroundImage:
+                'radial-gradient(circle at top, rgba(14,116,144,0.35), transparent 55%), radial-gradient(circle at 30% 80%, rgba(59,130,246,0.25), transparent 55%)'
+            }}
+            animate={{ backgroundPosition: ['0% 0%', '100% 100%'] }}
+            transition={{ duration: 24, ease: 'easeOut', repeat: Infinity, repeatType: 'mirror' }}
+          />
+
+          <motion.span
+            className="absolute -top-10 -left-10 h-28 w-28 rounded-full bg-primary-500/20 blur-2xl"
+            animate={{ y: [0, 18, 0] }}
+            transition={{ duration: 12, ease: 'easeInOut', repeat: Infinity }}
+          />
+          <motion.span
+            className="absolute bottom-4 right-4 h-20 w-20 rounded-full bg-cyan-400/20 blur-2xl"
+            animate={{ y: [0, -14, 0] }}
+            transition={{ duration: 10, ease: 'easeInOut', repeat: Infinity }}
+          />
+
+          <div className="relative space-y-7 px-3 sm:px-5 py-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-500/10 text-primary-300 border border-primary-500/30 text-xs font-semibold uppercase tracking-widest">
+              Learn by Playing
+            </div>
+            <motion.h1
+              className="text-4xl sm:text-5xl font-extrabold text-white leading-tight"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1, ease: 'easeOut' }}
+            >
+              <TypingText
+                as="span"
+                text="Samvidhan Sarathi"
+                typingSpeed={70}
+                initialDelay={200}
+                pauseDuration={3000}
+                deletingSpeed={40}
+                loop={true}
+                showCursor={true}
+                hideCursorWhileTyping={false}
+                cursorClassName="bg-primary-300"
+                className="block text-transparent bg-clip-text bg-gradient-to-r from-primary-300 via-primary-400 to-primary-500 drop-shadow-[0_0_18px_rgba(59,130,246,0.45)]"
+              />
+              <motion.span
+                className="block text-primary-200/90 mt-2 text-2xl sm:text-3xl"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: 0.22, ease: 'easeOut' }}
+              >
+                Simplified Constitutional Learning
+              </motion.span>
+            </motion.h1>
+            <motion.p
+              className="text-lg text-gray-300 max-w-xl leading-relaxed"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.28, ease: 'easeOut' }}
+            >
+              Create your account to unlock games, quizzes, and guided learning journeys that make the <span className="text-cyan-200">Constitution</span> easy to understand for every citizen.
+            </motion.p>
+
+            <motion.div
+              className="grid grid-cols-1 sm:grid-cols-3 gap-8"
+              variants={featureContainer}
+              initial="hidden"
+              animate="show"
+            >
+              <motion.div
+                variants={featureItem}
+                whileHover={{ scale: 1.03, boxShadow: '0 0 18px rgba(56,189,248,0.25)' }}
+                className="p-6 rounded-2xl bg-dark-300/80 border border-dark-200"
+              >
+                <div className="h-8 w-8 rounded-full border border-primary-400/40 bg-primary-500/10 flex items-center justify-center text-primary-300">
+                  📘
+                </div>
+                <p className="mt-4 text-white font-semibold">Learn in Simple Language</p>
+                <p className="mt-2 text-sm text-gray-400 leading-relaxed">Clear explanations for Articles, Rights, and Duties.</p>
+              </motion.div>
+              <motion.div
+                variants={featureItem}
+                whileHover={{ scale: 1.03, boxShadow: '0 0 18px rgba(56,189,248,0.25)' }}
+                className="p-6 rounded-2xl bg-dark-300/80 border border-dark-200"
+              >
+                <div className="h-8 w-8 rounded-full border border-primary-400/40 bg-primary-500/10 flex items-center justify-center text-primary-300">
+                  🎮
+                </div>
+                <p className="mt-4 text-white font-semibold">Play Civic Scenarios</p>
+                <p className="mt-2 text-sm text-gray-400 leading-relaxed">Practice decisions with real-world context.</p>
+              </motion.div>
+              <motion.div
+                variants={featureItem}
+                whileHover={{ scale: 1.03, boxShadow: '0 0 18px rgba(56,189,248,0.25)' }}
+                className="p-6 rounded-2xl bg-dark-300/80 border border-dark-200"
+              >
+                <div className="h-8 w-8 rounded-full border border-primary-400/40 bg-primary-500/10 flex items-center justify-center text-primary-300">
+                  🏆
+                </div>
+                <p className="mt-4 text-white font-semibold">Track Progress</p>
+                <p className="mt-2 text-sm text-gray-400 leading-relaxed">Earn levels and badges as you grow.</p>
+              </motion.div>
+            </motion.div>
+
+            <motion.p
+              className="text-sm text-gray-400"
+              animate={{ opacity: [0.6, 1, 0.6] }}
+              transition={{ duration: 3.2, ease: 'easeInOut', repeat: Infinity }}
+            >
+              Built to strengthen constitutional awareness among Indian citizens.
+            </motion.p>
+          </div>
+        </motion.div>
+
+        <motion.div
+          className="max-w-lg w-full space-y-8 p-10 bg-dark-300 rounded-2xl shadow-xl justify-self-end"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div>
+            <h2 className="mt-2 text-center text-3xl font-extrabold text-white">
+              Create your account
+            </h2>
+            <p className="mt-2 text-center text-sm text-gray-400">
+              Or{' '}
+              <Link to="/login" className="font-medium text-primary-500 hover:text-primary-400">
+                sign in to your existing account
+              </Link>
+            </p>
+          </div>
         
         {error && (
           <div className="bg-red-900/30 border border-red-800 text-red-300 px-4 py-3 rounded relative" role="alert">
@@ -228,7 +361,8 @@ const Register = () => {
             </button>
           </div>
         </form>
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 };

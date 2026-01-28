@@ -93,7 +93,7 @@ const Layout = () => {
       >
         <div className="flex items-center justify-center h-16 p-4 border-b border-dark-200">
           <Link to="/" className="text-2xl font-bold text-primary-500">
-            Constitutional
+            Samvidhan Sarathi
           </Link>
         </div>
         
@@ -148,7 +148,7 @@ const Layout = () => {
       >
         <div className="flex items-center justify-center h-16 p-4 border-b border-dark-200">
           <Link to="/" className="text-xl font-bold text-primary-500">
-            Constitutional
+            Samvidhan Sarathi
           </Link>
         </div>
         
@@ -311,10 +311,11 @@ const Layout = () => {
 
         {/* Page content */}
         <main 
-          className="flex-1 overflow-y-auto p-4 md:p-6"
+          className="flex-1 overflow-y-auto"
           onClick={handleClickOutside}
         >
           <motion.div
+            className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}

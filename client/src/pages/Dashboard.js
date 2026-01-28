@@ -44,10 +44,12 @@ const StatCard = ({ title, value, icon, color = 'primary' }) => {
 };
 
 const Dashboard = () => {
-  const { user, authAxios } = useContext(AuthContext);
+  const { user, authAxios, updateProfile } = useContext(AuthContext);
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedCountry, setSelectedCountry] = useState(user?.preferredCountry || 'India');
+  const [isUpdatingCountry, setIsUpdatingCountry] = useState(false);
   
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -82,14 +84,33 @@ const Dashboard = () => {
     );
   }
   
+  const handleCountryChange = async (e) => {
+    const newCountry = e.target.value;
+    setSelectedCountry(newCountry);
+
+    try {
+      setIsUpdatingCountry(true);
+      await updateProfile({ preferredCountry: newCountry });
+    } catch (err) {
+      console.error('Error updating preferred country:', err);
+    } finally {
+      setIsUpdatingCountry(false);
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+    <div className="space-y-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-white">Dashboard</h1>
+          <p className="text-sm text-gray-400 mt-1">Track your learning progress and recent activity.</p>
+        </div>
         <div className="flex items-center space-x-2">
           <select 
             className="input bg-dark-200 text-sm"
-            defaultValue={user?.preferredCountry || 'India'}
+            value={selectedCountry}
+            onChange={handleCountryChange}
+            disabled={isUpdatingCountry}
           >
             <option value="India">India</option>
             <option value="USA">USA</option>
@@ -101,7 +122,7 @@ const Dashboard = () => {
       {dashboardData && (
         <>
           {/* Stats overview */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <StatCard 
               title="Overall Progress" 
               value={`${dashboardData.stats.overallProgress}%`} 
@@ -147,7 +168,7 @@ const Dashboard = () => {
           </div>
           
           {/* Recent activity and progress */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Topic progress */}
             <div className="lg:col-span-2 card space-y-4">
               <div className="flex items-center justify-between mb-2">
@@ -177,9 +198,11 @@ const Dashboard = () => {
                 {dashboardData.progress.length === 0 && (
                   <div className="text-center py-8 text-gray-400">
                     <p>No topics started yet. Explore topics to begin learning!</p>
-                    <Link to="/topics" className="btn btn-primary mt-4">
-                      Explore Topics
-                    </Link>
+                    <div className="mt-4">
+                      <Link to="/topics" className="btn btn-primary">
+                        Explore Topics
+                      </Link>
+                    </div>
                   </div>
                 )}
               </div>
@@ -260,9 +283,11 @@ const Dashboard = () => {
             ) : (
               <div className="text-center py-8 text-gray-400">
                 <p>Start exploring topics to begin your learning journey!</p>
-                <Link to="/topics" className="btn btn-primary mt-4">
-                  Start Learning
-                </Link>
+                <div className="mt-4">
+                  <Link to="/topics" className="btn btn-primary">
+                    Start Learning
+                  </Link>
+                </div>
               </div>
             )}
           </div>

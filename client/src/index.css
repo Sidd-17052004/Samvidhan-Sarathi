@@ -51,7 +51,7 @@ html {
   }
 
   .card {
-    @apply bg-dark-300 rounded-xl p-6 shadow-lg;
+    @apply bg-dark-300 rounded-2xl p-7 shadow-lg border border-dark-200;
   }
 
   .input {

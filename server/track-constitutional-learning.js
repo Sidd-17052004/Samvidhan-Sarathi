@@ -8,7 +8,7 @@ const User = require('./models/User');
 const Progress = require('./models/Progress');
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/constitutional', {
+mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/samvidhan_sarthi', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }).then(() => {

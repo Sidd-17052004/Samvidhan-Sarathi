@@ -40,7 +40,7 @@ app.use((err, req, res, next) => {
 
 // Database connection
 mongoose
-  .connect(process.env.MONGO_URI || 'mongodb://localhost:27017/constitutional-app', {
+  .connect(process.env.MONGO_URI || 'mongodb://localhost:27017/samvidhan_sarthi', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })

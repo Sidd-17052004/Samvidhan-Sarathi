@@ -111,9 +111,12 @@ const Topics = () => {
   }
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-white">Constitutional Topics</h1>
+        <div>
+          <h1 className="text-3xl font-bold text-white">Constitutional Topics</h1>
+          <p className="text-sm text-gray-400 mt-1">Browse topics by category and continue your learning journey.</p>
+        </div>
         
         {countries.length > 0 && (
           <div className="flex items-center space-x-2">
@@ -153,13 +156,13 @@ const Topics = () => {
       )}
       
       {Object.keys(topicsByCategory).map((category) => (
-        <div key={category} className="space-y-4">
+        <div key={category} className="space-y-6">
           <h2 className="text-xl font-semibold text-white">
             {getCategoryLabel(category)}
           </h2>
           
           <motion.div 
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
@@ -178,7 +181,7 @@ const Topics = () => {
                   className="block h-full"
                 >
                   <div 
-                    className="rounded-xl p-6 h-full shadow-lg text-white relative overflow-hidden"
+                    className="rounded-2xl p-6 h-full shadow-lg text-white relative overflow-hidden border border-white/10"
                     style={getTopicCardStyle(topic.color)}
                   >
                     {/* Icon */}
@@ -187,16 +190,24 @@ const Topics = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                       </svg>
                     </div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/20" />
                     
-                    <div className="relative z-10">
-                      <h3 className="font-bold text-xl mb-2">{topic.title}</h3>
-                      <p className="text-white/80 line-clamp-3">{topic.description}</p>
-                      
-                      <div className="mt-4 flex justify-between items-center">
-                        <span className="text-sm font-medium bg-black/20 px-3 py-1 rounded-full">
+                    <div className="relative z-10 flex h-full flex-col">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold uppercase tracking-wider bg-black/25 px-3 py-1 rounded-full">
                           {topic.difficulty}
                         </span>
-                        <span className="text-sm">Explore →</span>
+                        <span className="text-xs text-white/80">Estimated: 5-10 min</span>
+                      </div>
+                      
+                      <h3 className="font-bold text-xl mt-4 mb-2 leading-snug">{topic.title}</h3>
+                      <p className="text-white/80 line-clamp-2 leading-relaxed">{topic.description}</p>
+                      
+                      <div className="mt-auto pt-5 flex items-center justify-between">
+                        <span className="text-xs font-medium bg-black/25 px-3 py-1 rounded-full">
+                          Start here
+                        </span>
+                        <span className="text-sm font-semibold">Explore →</span>
                       </div>
                     </div>
                   </div>

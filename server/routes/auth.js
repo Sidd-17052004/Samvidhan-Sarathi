@@ -25,18 +25,19 @@ const authenticateToken = (req, res, next) => {
 router.post('/register', async (req, res) => {
   try {
     const { username, email, password, name, preferredCountry } = req.body;
-    
+    // Log incoming request body for debugging
+    if (!username || !email || !password) {
+      return res.status(400).json({ message: 'Missing required fields: username, email, or password.' });
+    }
     // Check if user with email or username already exists
     const existingUser = await User.findOne({ 
       $or: [{ email }, { username }] 
     });
-    
     if (existingUser) {
       return res.status(400).json({ 
         message: 'User with this email or username already exists' 
       });
     }
-    
     // Create new user
     const newUser = new User({
       username,
@@ -45,17 +46,24 @@ router.post('/register', async (req, res) => {
       name: name || username,
       preferredCountry: preferredCountry || 'India'
     });
-    
-    // Save user to database
-    await newUser.save();
-    
+    try {
+      await newUser.save();
+    } catch (saveError) {
+      console.error('User save error:', saveError);
+      return res.status(500).json({ message: 'Error saving user', error: saveError.message });
+    }
     // Generate token
-    const token = jwt.sign(
-      { id: newUser._id, role: newUser.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-    
+    let token;
+    try {
+      token = jwt.sign(
+        { id: newUser._id, role: newUser.role },
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+    } catch (jwtError) {
+      console.error('JWT sign error:', jwtError);
+      return res.status(500).json({ message: 'Error generating token', error: jwtError.message });
+    }
     // Return user info and token (exclude password)
     const userResponse = {
       id: newUser._id,
@@ -65,7 +73,6 @@ router.post('/register', async (req, res) => {
       preferredCountry: newUser.preferredCountry,
       role: newUser.role
     };
-    
     res.status(201).json({ user: userResponse, token });
   } catch (error) {
     console.error('Registration error:', error);

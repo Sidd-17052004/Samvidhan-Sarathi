@@ -5,7 +5,7 @@ const Topic = require('./models/Topic');
 
 async function main() {
   // Connect to MongoDB
-  await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/constitutional', {
+  await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/samvidhan_sarthi', {
     useNewUrlParser: true,
     useUnifiedTopology: true
   });

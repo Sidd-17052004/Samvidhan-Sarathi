@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { AuthContext } from '../contexts/AuthContext';
 
 // Import game components
@@ -264,16 +266,18 @@ const ContentDetail = () => {
     <div className="space-y-6">
       {/* Breadcrumb navigation */}
       {topic && (
-        <div className="flex items-center text-sm text-gray-400">
-          <Link to="/topics" className="hover:text-primary-500">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-400">
+          <Link to="/topics" className="hover:text-primary-400 font-medium">
             Topics
           </Link>
-          <span className="mx-2">/</span>
-          <Link to={`/topics/${topic._id}`} className="hover:text-primary-500">
+          <span className="text-gray-600">/</span>
+          <Link to={`/topics/${topic._id}`} className="hover:text-primary-400 font-medium">
             {topic.title}
           </Link>
-          <span className="mx-2">/</span>
-          <span className="text-gray-300">{content.title}</span>
+          <span className="text-gray-600">/</span>
+          <span className="text-gray-200 font-semibold">
+            {content.title}
+          </span>
         </div>
       )}
       
@@ -465,8 +469,8 @@ const ContentDetail = () => {
             
             {/* Game description */}
             {content.content && (
-              <div className="bg-dark-200 rounded-lg p-4">
-                <p className="text-gray-300">{content.content}</p>
+              <div className="bg-dark-200 rounded-xl p-5">
+                <p className="text-gray-200 leading-relaxed">{content.content}</p>
               </div>
             )}
             
@@ -494,8 +498,10 @@ const ContentDetail = () => {
         ) : (
           // Other content types (lesson, article, video)
           <div className="space-y-6">
-            <div className="prose prose-invert max-w-none">
-              <div dangerouslySetInnerHTML={{ __html: content.content }} />
+            <div className="prose prose-invert max-w-none leading-relaxed prose-headings:text-white prose-headings:font-semibold prose-headings:mt-8 prose-headings:mb-3 prose-h2:mt-9 prose-h3:mt-7 prose-p:mt-4 prose-li:mt-2 prose-li:text-gray-200 prose-p:text-gray-200 prose-strong:text-white prose-a:text-primary-400 prose-a:no-underline hover:prose-a:text-primary-300 prose-blockquote:border-primary-500/40 prose-blockquote:bg-dark-200/60 prose-blockquote:rounded-xl prose-blockquote:p-4 prose-blockquote:text-gray-200">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {content.content}
+              </ReactMarkdown>
             </div>
             
             <div className="flex justify-between pt-4 border-t border-dark-200">

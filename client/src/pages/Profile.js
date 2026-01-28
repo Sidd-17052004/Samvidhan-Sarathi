@@ -1,9 +1,11 @@
 import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { AuthContext } from '../contexts/AuthContext';
 
 const Profile = () => {
-  const { user, updateProfile, logout, error, setError } = useContext(AuthContext);
+  const { user, updateProfile, logout, error, setError, authAxios } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: user?.username || '',
     name: user?.name || '',
@@ -110,9 +112,10 @@ const Profile = () => {
     
     if (validatePasswordForm()) {
       try {
-        // Here you would call your API to change the password
-        // For now we'll just mock it
-        console.log('Password changed successfully');
+        await authAxios.put('/users/change-password', {
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword
+        });
         setIsChangingPassword(false);
         setPasswordSuccess(true);
         setPasswordData({
@@ -121,6 +124,8 @@ const Profile = () => {
           confirmPassword: ''
         });
       } catch (err) {
+        const message = err.response?.data?.message || 'Failed to change password';
+        setError(message);
         console.error('Password change error:', err);
       }
     }
@@ -189,7 +194,10 @@ const Profile = () => {
             
             <div className="mt-6">
               <button
-                onClick={() => logout()}
+                onClick={() => {
+                  logout();
+                  navigate('/login');
+                }}
                 className="btn btn-outline"
               >
                 Logout

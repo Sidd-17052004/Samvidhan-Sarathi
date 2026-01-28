@@ -228,7 +228,7 @@ const ConstitutionMap = ({ country = 'India' }) => {
                   onHoverStart={() => setHoveredSection(section.id)}
                   onHoverEnd={() => setHoveredSection(null)}
                 >
-                  <Link to={`/topics/detail/${section.linkId}`}>
+                  <Link to={`/topics/${section.linkId}`}>
                     <motion.div 
                       className={`w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center shadow-lg cursor-pointer`}
                       style={{ backgroundColor: section.color }}
@@ -262,7 +262,7 @@ const ConstitutionMap = ({ country = 'India' }) => {
                   transition: { type: "spring", stiffness: 300 }
                 }}
               >
-                <Link to={`/topics/detail/${section.linkId}`} className="block h-full">
+                <Link to={`/topics/${section.linkId}`} className="block h-full">
                   <div className="bg-dark-200 rounded-lg overflow-hidden h-full group hover:bg-dark-100 transition-colors">
                     <div className="h-2" style={{ backgroundColor: section.color }}></div>
                     <div className="p-6">
