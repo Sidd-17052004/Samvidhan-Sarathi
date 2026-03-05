@@ -5,8 +5,11 @@
 [![React](https://img.shields.io/badge/React-18+-61DAFB?logo=react)](https://react.dev)
 [![Node.js](https://img.shields.io/badge/Node.js-14+-339933?logo=node.js)](https://nodejs.org)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Latest-13AA52?logo=mongodb)](https://mongodb.com)
+<<<<<<< HEAD
 [![Express](https://img.shields.io/badge/Express-4.x-000000?logo=express)](https://expressjs.com)
 [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-3.x-06B6D4?logo=tailwindcss)](https://tailwindcss.com)
+=======
+>>>>>>> c61fe5f58e51233b33a301cc780e38c1571cbc05
 [![License](https://img.shields.io/badge/License-ISC-blue)](#license)
 
 ---
@@ -17,6 +20,7 @@ Samvidhan Sarathi is a **gamified civic-tech learning platform** that transforms
 
 ### ⭐ Key Highlights
 
+<<<<<<< HEAD
 - 🎮 **5 Game Types**: Quizzes, Scenario Challenges, Matching, Timeline, and Spiral Learning
 - 🏆 **8 Achievement Badges**: Earn rewards like Quiz Master, Preamble Scholar, Constitutional Expert
 - 📊 **Real-Time Dashboard**: Track progress per topic, quiz scores, activities — filtered by country
@@ -24,11 +28,20 @@ Samvidhan Sarathi is a **gamified civic-tech learning platform** that transforms
 - 🔐 **Secure Auth**: JWT-based authentication with bcrypt password hashing
 - 📱 **Fully Responsive**: Desktop, tablet, and mobile
 - 📚 **21 Topics, 59 Content Items**: From Preamble to Landmark Judgments
+=======
+- 🎮 **Gamified Learning**: Quizzes, scenario-based challenges, timeline games, and spiral learning paths
+- 🏆 **Achievement System**: Earn badges, track progress, and compete on leaderboards
+- 📊 **Personalized Dashboard**: Monitor learning journey with detailed analytics
+- 🌙 **Beautiful UI**: Modern dark-themed design with smooth animations
+- 🔐 **Secure Authentication**: JWT-based user authentication with bcrypt encryption
+- 📱 **Fully Responsive**: Seamless experience on desktop, tablet, and mobile
+>>>>>>> c61fe5f58e51233b33a301cc780e38c1571cbc05
 
 ---
 
 ## 💻 Tech Stack
 
+<<<<<<< HEAD
 | Layer        | Technology                            |
 | ------------ | ------------------------------------- |
 | **Frontend** | React 18, Tailwind CSS, Framer Motion |
@@ -39,15 +52,36 @@ Samvidhan Sarathi is a **gamified civic-tech learning platform** that transforms
 
 ---
 
+=======
+### Frontend
+
+- **React 18+** - Modern UI framework
+- **Tailwind CSS** - Utility-first styling
+- **Framer Motion** - Smooth animations & interactions
+
+### Backend
+
+- **Node.js + Express** - Fast, scalable server
+- **MongoDB** - NoSQL database for flexible data modeling
+- **JWT + bcrypt** - Enterprise-grade authentication
+
+---
+
+>>>>>>> c61fe5f58e51233b33a301cc780e38c1571cbc05
 ## 🚀 Quick Start
 
 ### Prerequisites
 
 - **Node.js** v14 or later
+<<<<<<< HEAD
 - **MongoDB** running locally (or a MongoDB Atlas URI)
+=======
+- **MongoDB** (local or Atlas)
+>>>>>>> c61fe5f58e51233b33a301cc780e38c1571cbc05
 
 ### 1. Clone & Install
 
+<<<<<<< HEAD
 ```bash
 # Clone the repository
 git clone <your-repo-url>
@@ -304,6 +338,114 @@ Samvidhan_Sarthi/
 - `cors` — Cross-origin requests
 - `morgan` — HTTP request logging
 - `dotenv` — Environment variable management
+=======
+1. **Install dependencies**
+
+   ```bash
+   cd server && npm install
+   cd ../client && npm install
+   ```
+
+2. **Configure environment variables**
+
+   ```bash
+   # Create .env files in both server/ and client/ directories
+   # Reference .env.example if available
+   ```
+
+3. **Seed the database**
+
+   ```bash
+   cd server
+   node seed-database.js
+   node check-topics.js  # Verify data creation
+   ```
+
+4. **Run the application**
+   ```bash
+   npm run dev        # Start both client & server
+   ```
+
+### 📋 Available Scripts
+
+| Command          | Purpose                               |
+| ---------------- | ------------------------------------- |
+| `npm run dev`    | Start frontend + backend concurrently |
+| `npm run server` | Run backend only                      |
+| `npm run client` | Run frontend only                     |
+
+---
+
+## 📁 Project Structure
+
+```
+Samvidhan_Sarthi/
+├── client/                 # React frontend
+│   ├── src/
+│   │   ├── components/     # Reusable React components
+│   │   ├── pages/          # Page components
+│   │   ├── contexts/       # React context for state management
+│   │   └── App.js          # Main app component
+│   └── public/             # Static assets
+│
+└── server/                 # Node.js/Express backend
+    ├── routes/             # API endpoints
+    ├── models/             # MongoDB schemas
+    ├── index.js            # Server entry point
+    └── seed-database.js    # Database initialization script
+```
+
+---
+
+## 🎓 Academic Excellence
+
+**Final Year Engineering Project** demonstrating:
+
+- ✅ Full-stack MERN architecture
+- ✅ User authentication & authorization
+- ✅ RESTful API design
+- ✅ Database optimization & seeding
+- ✅ Responsive UI/UX design
+- ✅ Gamification mechanics
+- ✅ Progress tracking & analytics
+
+---
+
+## 🌟 Features in Detail
+
+### 📚 Learning Modules
+
+- Interactive constitutional lessons with gamification
+- Multiple game types: Quizzes, Scenarios, Timelines, Spirals
+- Progressive difficulty levels
+
+### 👤 User Authentication
+
+- Secure signup & login system
+- JWT token-based sessions
+- Password hashing with bcrypt
+
+### 🎖️ Achievement & Progress Tracking
+
+- Earn badges for milestones
+- Real-time progress dashboard
+- Performance analytics & insights
+
+### 🎨 UI/UX Excellence
+
+- Dark theme for comfortable learning
+- Smooth animations & transitions
+- Mobile-first responsive design
+
+---
+
+## 📦 Dependencies
+
+**Core Libraries**: React, Express, MongoDB
+**Styling**: Tailwind CSS, Framer Motion
+**Security**: JWT, bcrypt
+**Environment**: dotenv for configuration
+>>>>>>> c61fe5f58e51233b33a301cc780e38c1571cbc05
 
 ---
 
@@ -315,7 +457,11 @@ Contributions are welcome! Please feel free to submit pull requests with improve
 
 ## 📄 License
 
+<<<<<<< HEAD
 ISC License — See LICENSE file for details.
+=======
+ISC License - See LICENSE file for details
+>>>>>>> c61fe5f58e51233b33a301cc780e38c1571cbc05
 
 ---
 
