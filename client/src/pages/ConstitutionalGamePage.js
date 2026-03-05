@@ -28,6 +28,7 @@ const ConstitutionalGamePage = () => {
   // Add state for achievements
   const [achievements, setAchievements] = useState([]);
   const [achievementsLoading, setAchievementsLoading] = useState(true);
+  const [badgeNotification, setBadgeNotification] = useState(null);
   
   // Get the authentication context for API calls
   const { authAxios } = useContext(AuthContext);
@@ -39,27 +40,16 @@ const ConstitutionalGamePage = () => {
       setError(null);
       
       try {
-        console.log('🔍 Fetching game data...');
-        
-        // First try to get all games of all types at once 
-        console.log('📡 Making API call to /content/games/all');
+        // Fetch all games of all types at once 
         const allGamesResponse = await authAxios.get('/content/games/all');
-        console.log('✅ Response received from /content/games/all:', allGamesResponse);
         
         if (allGamesResponse.data) {
-          console.log('📋 Processing response data...');
-          
           // Process quiz games
           if (allGamesResponse.data.quiz && allGamesResponse.data.quiz.data) {
-            console.log('📋 Fetching additional quiz games...');
-            // Query for additional quizzes
             const quizResponse = await authAxios.get('/content/games/quiz');
-            console.log('✅ Quiz response:', quizResponse);
             if (quizResponse.data && quizResponse.data.length > 0) {
-              console.log(`✅ Setting quiz games: ${quizResponse.data.length} found`);
               setQuizGames(quizResponse.data);
             } else {
-              console.log('⚠️ No quiz games found, using sample data');
               setQuizGames([{ 
                 id: 'sample-quiz',
                 title: 'Constitutional Quiz',
@@ -68,7 +58,6 @@ const ConstitutionalGamePage = () => {
               }]);
             }
           } else {
-            console.log('⚠️ No quiz data in combined response, using sample data');
             setQuizGames([{ 
               id: 'sample-quiz',
               title: 'Constitutional Quiz',
@@ -82,7 +71,6 @@ const ConstitutionalGamePage = () => {
             // Query for additional scenarios
             const scenarioResponse = await authAxios.get('/content/games/scenario');
             if (scenarioResponse.data && scenarioResponse.data.length > 0) {
-              console.log('Setting scenario games:', scenarioResponse.data);
               setScenarioGames(scenarioResponse.data);
             } else {
               setScenarioGames([{
@@ -106,9 +94,9 @@ const ConstitutionalGamePage = () => {
             // Query for additional matching games
             const matchingResponse = await authAxios.get('/content/games/matching');
             if (matchingResponse.data && matchingResponse.data.length > 0) {
-              console.log('Setting matching games:', matchingResponse.data);
               setMatchingGames(matchingResponse.data.map(game => ({
                 id: game.id,
+                topicId: game.topicId,
                 title: game.title,
                 description: game.description,
                 pairs: game.config?.pairs || sampleMatchingGameData
@@ -135,9 +123,9 @@ const ConstitutionalGamePage = () => {
             // Query for additional spiral games
             const spiralResponse = await authAxios.get('/content/games/spiral');
             if (spiralResponse.data && spiralResponse.data.length > 0) {
-              console.log('Setting spiral games:', spiralResponse.data);
               setSpiralGames(spiralResponse.data.map(game => ({
                 id: game.id,
+                topicId: game.topicId,
                 title: game.title,
                 description: game.description,
                 config: game.config || sampleSpiralGameData
@@ -164,9 +152,9 @@ const ConstitutionalGamePage = () => {
             // Query for additional timeline games
             const timelineResponse = await authAxios.get('/content/games/timeline');
             if (timelineResponse.data && timelineResponse.data.length > 0) {
-              console.log('Setting timeline games:', timelineResponse.data);
               setTimelineGames(timelineResponse.data.map(game => ({
                 id: game.id,
+                topicId: game.topicId,
                 title: game.title,
                 description: game.description,
                 events: game.config?.events || sampleTimelineGameData
@@ -188,7 +176,6 @@ const ConstitutionalGamePage = () => {
             }]);
           }
         } else {
-          console.log('⚠️ Empty response data, using sample data');
           // Fallback to sample data
           setQuizGames([{ 
             id: 'sample-quiz',
@@ -226,26 +213,13 @@ const ConstitutionalGamePage = () => {
           }]);
         }
         
-        console.log('✅ Game data loading complete');
         setLoading(false);
       } catch (err) {
-        console.error('❌ Error fetching game data:', err);
-        if (err.response) {
-          console.error('❌ Response data:', err.response.data);
-          console.error('❌ Response status:', err.response.status);
-          console.error('❌ Response headers:', err.response.headers);
-        } else if (err.request) {
-          console.error('❌ Request made but no response received:', err.request);
-        } else {
-          console.error('❌ Error message:', err.message);
-        }
-        console.error('❌ Error config:', err.config);
-        
+        console.error('Error fetching game data:', err.message);
         setError('Failed to load game data. Please try again later.');
         setLoading(false);
         
         // Use sample data as fallback if server fails
-        console.log('⚠️ Error occurred, using sample data');
         setQuizGames([{ 
           id: 'sample-quiz',
           title: 'Constitutional Quiz',
@@ -509,10 +483,37 @@ const ConstitutionalGamePage = () => {
     setGameScore(score);
     setGameCompleted(true);
     
+    // Track game completion in progress via /content/track
+    try {
+      if (selectedGameData && selectedGameData.id && !selectedGameData.id.startsWith('sample-')) {
+        await authAxios.post('/content/track', {
+          topicId: selectedGameData.topicId || selectedGameData.id,
+          contentId: selectedGameData.id,
+          type: selectedGame === 'quiz' ? 'quiz' : 'game',
+          score: score,
+          completed: true
+        });
+      }
+    } catch (error) {
+      console.error('Error tracking game progress:', error);
+    }
+    
     // After game completion, check for new achievements
     try {
-      await authAxios.post('/users/process-achievements');
+      const achieveRes = await authAxios.post('/users/process-achievements');
       setNewAchievements(prev => !prev); // Toggle to trigger re-fetch
+      
+      // Show notification if new badges were earned
+      if (achieveRes.data && achieveRes.data.newBadges > 0) {
+        setBadgeNotification({
+          count: achieveRes.data.newBadges,
+          message: achieveRes.data.newBadges === 1 
+            ? 'You earned a new badge!' 
+            : `You earned ${achieveRes.data.newBadges} new badges!`
+        });
+        // Auto-dismiss after 6 seconds
+        setTimeout(() => setBadgeNotification(null), 6000);
+      }
     } catch (error) {
       console.error('Error processing achievements:', error);
     }
@@ -804,6 +805,35 @@ const ConstitutionalGamePage = () => {
   
   return (
     <div className="space-y-6">
+      {/* Badge notification toast */}
+      {badgeNotification && (
+        <motion.div 
+          className="fixed top-6 right-6 z-50 bg-gradient-to-r from-yellow-600 to-amber-600 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3"
+          initial={{ opacity: 0, x: 100, scale: 0.8 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          exit={{ opacity: 0, x: 100, scale: 0.8 }}
+          transition={{ type: "spring", stiffness: 300, damping: 24 }}
+        >
+          <div className="flex-shrink-0 bg-yellow-500/30 p-2 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-yellow-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+            </svg>
+          </div>
+          <div>
+            <p className="font-bold text-lg">{badgeNotification.message}</p>
+            <p className="text-yellow-100 text-sm">Check your achievements below!</p>
+          </div>
+          <button 
+            onClick={() => setBadgeNotification(null)}
+            className="ml-2 text-yellow-200 hover:text-white"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+          </button>
+        </motion.div>
+      )}
+      
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
         <div>
           <h1 className="text-3xl font-bold text-white">Constitutional Learning Games</h1>

@@ -1,9 +1,9 @@
 // This script adds initial achievement badges to the database
 // Run with: node add-initial-badges.js
 
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const mongoose = require('mongoose');
-const Badge = require('./models/Badge');
+const Badge = require('../models/Badge');
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/samvidhan_sarthi', {

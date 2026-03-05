@@ -9,6 +9,7 @@ const TimelineGame = ({ gameData, onComplete, isCompleted, score, onPlayAgain })
   const [gameEnded, setGameEnded] = useState(false);
   const [feedback, setFeedback] = useState({ show: false, correct: 0, total: 0 });
   const [remainingTime, setRemainingTime] = useState(120); // 2 minutes in seconds
+  const [warningMessage, setWarningMessage] = useState('');
   
   // Initialize the game
   useEffect(() => {
@@ -79,9 +80,11 @@ const TimelineGame = ({ gameData, onComplete, isCompleted, score, onPlayAgain })
   // Check if the arrangement is correct
   const checkAnswer = () => {
     if (userArrangement.length !== gameData.length) {
-      alert("Please arrange all events in the timeline first!");
+      setWarningMessage('Please arrange all events in the timeline first!');
+      setTimeout(() => setWarningMessage(''), 3000);
       return;
     }
+    setWarningMessage('');
     
     // Sort the original data by year
     const sortedOriginal = [...gameData].sort((a, b) => a.year - b.year);
@@ -236,6 +239,15 @@ const TimelineGame = ({ gameData, onComplete, isCompleted, score, onPlayAgain })
                 >
                   Submit Answer
                 </button>
+                {warningMessage && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-amber-400 text-sm font-medium mt-2 w-full text-center"
+                  >
+                    {warningMessage}
+                  </motion.p>
+                )}
               </>
             ) : (
               <button

@@ -1,10 +1,10 @@
 // This script adds detailed constitutional scenario games to the database
 // Run with: node add-constitutional-scenarios.js
 
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const mongoose = require('mongoose');
-const Content = require('./models/Content');
-const Topic = require('./models/Topic');
+const Content = require('../models/Content');
+const Topic = require('../models/Topic');
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/samvidhan_sarthi', {

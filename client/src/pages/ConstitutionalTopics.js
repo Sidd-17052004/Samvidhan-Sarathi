@@ -45,264 +45,63 @@ const ConstitutionalTopics = () => {
     }
   ];
 
-  // Mock topics for now - in real application, this would be fetched from API
+  // Level-to-customId prefix mapping
+  const levelPrefixMap = {
+    level0: 'l0-',
+    level1: 'l1-',
+    level2: 'l2-',
+    level3: 'l3-',
+    level4: 'l4-'
+  };
+
+  // Fetch topics from the API
   useEffect(() => {
     const fetchTopics = async () => {
       try {
         setLoading(true);
+        setError(null);
         
-        // In real application:
-        // const response = await authAxios.get('/content/topics', { params: filters });
-        // setTopics(response.data);
+        // Fetch all topics for the selected country from the real API
+        const response = await authAxios.get(`/content/topics/${encodeURIComponent(filters.country)}`);
+        let allTopics = response.data || [];
         
-        // Level 0: Introduction topics
-        const level0Topics = [
-          {
-            _id: 'l0-1',
-            title: 'Preamble',
-            description: 'Introduction to the Constitution, its purpose, and ideals including sovereignty, socialism, secularism, democracy, justice, liberty, equality, and fraternity.',
-            category: 'Introduction',
-            difficulty: 'Beginner',
-            country: 'India',
-            contentCount: 3,
-            level: 'level0'
-          },
-          {
-            _id: 'l0-2',
-            title: 'History of Constitution',
-            description: 'Timeline of formation, Constituent Assembly, and the drafting process of the Indian Constitution.',
-            category: 'Introduction',
-            difficulty: 'Beginner',
-            country: 'India',
-            contentCount: 4,
-            level: 'level0'
-          },
-          {
-            _id: 'l0-3',
-            title: 'Features of Constitution',
-            description: 'Federalism, Parliamentary System, Secularism, and other unique features of the Indian Constitution.',
-            category: 'Introduction',
-            difficulty: 'Beginner',
-            country: 'India',
-            contentCount: 5,
-            level: 'level0'
+        // Also fetch content counts per topic
+        const topicsWithCounts = await Promise.all(
+          allTopics.map(async (topic) => {
+            try {
+              const contentRes = await authAxios.get(`/content/topics/${topic._id}/content`);
+              return { ...topic, contentCount: contentRes.data?.length || 0 };
+            } catch {
+              return { ...topic, contentCount: 0 };
+            }
+          })
+        );
+        
+        // Filter by selected level using customId prefix
+        const prefix = levelPrefixMap[selectedLevel];
+        let filteredTopics = topicsWithCounts.filter(topic => {
+          if (topic.customId && prefix) {
+            return topic.customId.startsWith(prefix);
           }
-        ];
-        
-        // Level 1: Basic Structure topics (selected parts)
-        const level1Topics = [
-          {
-            _id: 'l1-1',
-            title: 'Part I: Union and its Territory',
-            description: 'Articles 1-4: Name and territory of the Union, admission of new states, formation of new states, and alteration of boundaries.',
-            category: 'Basic Structure',
-            difficulty: 'Beginner',
-            country: 'India',
-            contentCount: 2,
-            level: 'level1'
-          },
-          {
-            _id: 'l1-2',
-            title: 'Part III: Fundamental Rights',
-            description: 'Articles 12-35: Six fundamental rights including Right to Equality, Right to Freedom, Right against Exploitation, and more.',
-            category: 'Basic Structure',
-            difficulty: 'Beginner',
-            country: 'India',
-            contentCount: 6,
-            level: 'level1'
-          },
-          {
-            _id: 'l1-3',
-            title: 'Part IV: Directive Principles',
-            description: 'Articles 36-51: Guidelines provided to the government to ensure social and economic democracy through welfare approach.',
-            category: 'Basic Structure',
-            difficulty: 'Intermediate',
-            country: 'India',
-            contentCount: 4,
-            level: 'level1'
-          },
-          {
-            _id: 'l1-4',
-            title: 'Part IV-A: Fundamental Duties',
-            description: 'Article 51A: List of duties that citizens are expected to abide by.',
-            category: 'Basic Structure',
-            difficulty: 'Beginner',
-            country: 'India',
-            contentCount: 1,
-            level: 'level1'
-          },
-          {
-            _id: 'l1-5',
-            title: 'Part V: Union Government',
-            description: 'Articles 52-151: Structure and functioning of the President, Vice-President, Prime Minister, and Parliament.',
-            category: 'Basic Structure',
-            difficulty: 'Intermediate',
-            country: 'India',
-            contentCount: 5,
-            level: 'level1'
-          },
-          {
-            _id: 'l1-6',
-            title: 'Part XVIII: Emergency Provisions',
-            description: 'Articles 352-360: Three types of emergencies - National, State, and Financial, and their implications.',
-            category: 'Basic Structure',
-            difficulty: 'Advanced',
-            country: 'India',
-            contentCount: 3,
-            level: 'level1'
-          }
-        ];
-        
-        // Level 2: Schedules topics
-        const level2Topics = [
-          {
-            _id: 'l2-1',
-            title: 'Schedule 1: States and UTs',
-            description: 'List of states and union territories in India with their territories.',
-            category: 'Schedules',
-            difficulty: 'Beginner',
-            country: 'India',
-            contentCount: 1,
-            level: 'level2'
-          },
-          {
-            _id: 'l2-2',
-            title: 'Schedule 7: Division of Powers',
-            description: 'Union List, State List, and Concurrent List defining the division of powers between the Centre and States.',
-            category: 'Schedules',
-            difficulty: 'Intermediate',
-            country: 'India',
-            contentCount: 3,
-            level: 'level2'
-          },
-          {
-            _id: 'l2-3',
-            title: 'Schedule 8: Official Languages',
-            description: 'The 22 official languages recognized by the Constitution of India.',
-            category: 'Schedules',
-            difficulty: 'Beginner',
-            country: 'India',
-            contentCount: 1,
-            level: 'level2'
-          },
-          {
-            _id: 'l2-4',
-            title: 'Schedule 9 & 10: Special Acts & Anti-Defection',
-            description: 'Schedule 9 protects certain laws from judicial review, while Schedule 10 contains anti-defection provisions.',
-            category: 'Schedules',
-            difficulty: 'Advanced',
-            country: 'India',
-            contentCount: 2,
-            level: 'level2'
-          }
-        ];
-        
-        // Level 3: Amendments topics
-        const level3Topics = [
-          {
-            _id: 'l3-1',
-            title: '1st Amendment (1951)',
-            description: 'Added Ninth Schedule to protect land reform laws from judicial review.',
-            category: 'Amendments',
-            difficulty: 'Intermediate',
-            country: 'India',
-            contentCount: 1,
-            level: 'level3'
-          },
-          {
-            _id: 'l3-2',
-            title: '42nd Amendment (1976)',
-            description: 'The "Mini-Constitution" that made significant changes during the Emergency period.',
-            category: 'Amendments',
-            difficulty: 'Advanced',
-            country: 'India',
-            contentCount: 3,
-            level: 'level3'
-          },
-          {
-            _id: 'l3-3',
-            title: '73rd & 74th Amendments',
-            description: 'Constitutional status to Panchayati Raj Institutions and Municipalities.',
-            category: 'Amendments',
-            difficulty: 'Intermediate',
-            country: 'India',
-            contentCount: 2,
-            level: 'level3'
-          },
-          {
-            _id: 'l3-4',
-            title: '101st Amendment (GST)',
-            description: 'Introduction of Goods and Services Tax (GST) in India.',
-            category: 'Amendments',
-            difficulty: 'Intermediate',
-            country: 'India',
-            contentCount: 1,
-            level: 'level3'
-          }
-        ];
-        
-        // Level 4: Advanced topics
-        const level4Topics = [
-          {
-            _id: 'l4-1',
-            title: 'Doctrine of Basic Structure',
-            description: 'Explore the judicial doctrine that sets limits on Parliament\'s power to amend the Constitution.',
-            category: 'Advanced',
-            difficulty: 'Advanced',
-            country: 'India',
-            contentCount: 2,
-            level: 'level4'
-          },
-          {
-            _id: 'l4-2',
-            title: 'Judicial Review',
-            description: 'Study the power of the Supreme Court and High Courts to review the constitutionality of laws.',
-            category: 'Advanced',
-            difficulty: 'Advanced',
-            country: 'India',
-            contentCount: 2,
-            level: 'level4'
-          },
-          {
-            _id: 'l4-3',
-            title: 'Landmark Judgments',
-            description: 'Analyze landmark Supreme Court judgments that have shaped constitutional interpretation.',
-            category: 'Advanced',
-            difficulty: 'Advanced',
-            country: 'India',
-            contentCount: 5,
-            level: 'level4'
-          },
-          {
-            _id: 'l4-4',
-            title: 'Constitution in Modern India',
-            description: 'Evaluate the role and relevance of the Constitution in contemporary Indian society.',
-            category: 'Advanced',
-            difficulty: 'Advanced',
-            country: 'India',
-            contentCount: 3,
-            level: 'level4'
-          }
-        ];
-        
-        // Combine all topics
-        const allTopics = [
-          ...level0Topics,
-          ...level1Topics,
-          ...level2Topics,
-          ...level3Topics,
-          ...level4Topics
-        ];
-        
-        // Filter topics based on current filters and selected level
-        const filteredTopics = allTopics.filter(topic => {
-          return (
-            (filters.country === '' || topic.country === filters.country) &&
-            (filters.category === '' || topic.category === filters.category) &&
-            (filters.difficulty === '' || topic.difficulty === filters.difficulty) &&
-            topic.level === selectedLevel
-          );
+          return false;
         });
+        
+        // Apply category filter
+        if (filters.category) {
+          filteredTopics = filteredTopics.filter(t => 
+            t.category?.toLowerCase() === filters.category.toLowerCase()
+          );
+        }
+        
+        // Apply difficulty filter
+        if (filters.difficulty) {
+          filteredTopics = filteredTopics.filter(t => 
+            t.difficulty?.toLowerCase() === filters.difficulty.toLowerCase()
+          );
+        }
+        
+        // Sort by order
+        filteredTopics.sort((a, b) => (a.order || 0) - (b.order || 0));
         
         setTopics(filteredTopics);
       } catch (err) {

@@ -1,10 +1,56 @@
 const express = require('express');
+const path = require('path');
+const fs = require('fs');
 const { authenticateToken } = require('./auth');
 const User = require('../models/User');
 const Badge = require('../models/Badge');
 const Progress = require('../models/Progress');
 const Content = require('../models/Content');
+const Topic = require('../models/Topic');
 const router = express.Router();
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, '..', 'uploads', 'avatars');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Upload profile picture (base64)
+router.post('/upload-avatar', authenticateToken, async (req, res) => {
+  try {
+    const { image } = req.body;
+    if (!image) {
+      return res.status(400).json({ message: 'No image provided' });
+    }
+    
+    // Extract base64 data
+    const matches = image.match(/^data:image\/(png|jpeg|jpg|gif|webp);base64,(.+)$/);
+    if (!matches) {
+      return res.status(400).json({ message: 'Invalid image format. Use PNG, JPEG, GIF, or WebP.' });
+    }
+    
+    const ext = matches[1] === 'jpeg' ? 'jpg' : matches[1];
+    const data = matches[2];
+    const filename = `avatar-${req.user.id}-${Date.now()}.${ext}`;
+    const filepath = path.join(uploadsDir, filename);
+    
+    // Write file
+    fs.writeFileSync(filepath, data, 'base64');
+    
+    // Update user profile
+    const imageUrl = `/uploads/avatars/${filename}`;
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { profilePicture: imageUrl },
+      { new: true }
+    ).select('-password');
+    
+    res.json({ profilePicture: imageUrl, user });
+  } catch (error) {
+    console.error('Error uploading avatar:', error);
+    res.status(500).json({ message: 'Error uploading avatar', error: error.message });
+  }
+});
 
 // Get user profile
 router.get('/profile', authenticateToken, async (req, res) => {
@@ -69,6 +115,8 @@ router.put('/profile', authenticateToken, async (req, res) => {
 // Get user dashboard data
 router.get('/dashboard', authenticateToken, async (req, res) => {
   try {
+    const { country } = req.query;
+    
     // Get user with badges
     const user = await User.findById(req.user.id)
       .select('-password')
@@ -78,20 +126,33 @@ router.get('/dashboard', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    // Get user progress across all topics
-    const progress = await Progress.find({ user: req.user.id })
+    // Get user progress across all topics, filtered by country if provided
+    const progressFilter = { user: req.user.id };
+    if (country) {
+      progressFilter.country = country;
+    }
+    
+    const progress = await Progress.find(progressFilter)
       .populate('topic')
       .sort({ lastUpdated: -1 });
     
+    // Filter out progress entries where topic was deleted
+    const validProgress = progress.filter(p => p.topic != null);
+    
+    // Get total topic count from DB for accurate stats
+    const topicFilter = country ? { country, isActive: true, parentTopic: null } : { isActive: true, parentTopic: null };
+    const totalTopicsInDB = await Topic.countDocuments(topicFilter);
+    
     // Calculate overall statistics
-    const totalTopics = progress.length;
-    const completedTopics = progress.filter(p => p.completionPercentage === 100).length;
+    const totalTopics = totalTopicsInDB || validProgress.length;
+    const completedTopics = validProgress.filter(p => p.completionPercentage === 100).length;
+    const startedTopics = validProgress.length;
     const overallProgress = totalTopics > 0 
-      ? Math.round((progress.reduce((sum, p) => sum + p.completionPercentage, 0) / totalTopics)) 
+      ? Math.round((validProgress.reduce((sum, p) => sum + p.completionPercentage, 0) / totalTopics)) 
       : 0;
     
     // Get recent activities
-    const recentActivities = progress
+    const recentActivities = validProgress
       .filter(p => p.activities.length > 0)
       .flatMap(p => p.activities.map(a => ({
         topicId: p.topic._id,
@@ -105,7 +166,7 @@ router.get('/dashboard', authenticateToken, async (req, res) => {
       .slice(0, 5);
     
     // Get quiz scores
-    const quizScores = progress
+    const quizScores = validProgress
       .filter(p => p.quizScores.length > 0)
       .flatMap(p => p.quizScores.map(q => ({
         topicId: p.topic._id,
@@ -121,18 +182,29 @@ router.get('/dashboard', authenticateToken, async (req, res) => {
       ? Math.round(quizScores.reduce((sum, q) => sum + q.score, 0) / quizScores.length)
       : 0;
     
+    // Get total activities and games completed
+    const totalActivitiesCompleted = validProgress.reduce(
+      (sum, p) => sum + p.activities.filter(a => a.completed).length, 0
+    );
+    const totalQuizzesTaken = validProgress.reduce(
+      (sum, p) => sum + p.quizScores.length, 0
+    );
+    
     res.json({
       user,
       stats: {
         totalTopics,
         completedTopics,
+        startedTopics,
         overallProgress,
         averageQuizScore,
-        totalBadges: user.badges.length
+        totalBadges: user.badges.length,
+        totalActivitiesCompleted,
+        totalQuizzesTaken
       },
       recentActivities,
       quizScores: quizScores.slice(0, 5),
-      progress: progress.map(p => ({
+      progress: validProgress.map(p => ({
         topicId: p.topic._id,
         topicTitle: p.topic.title,
         completionPercentage: p.completionPercentage,

@@ -495,14 +495,139 @@ const ContentDetail = () => {
               )}
             </div>
           </div>
-        ) : (
-          // Other content types (lesson, article, video)
+        ) : content.type === 'video' ? (
+          // Video content
           <div className="space-y-6">
+            {/* Video player */}
+            <div className="relative w-full bg-dark-200 rounded-xl overflow-hidden" style={{ paddingBottom: '56.25%' }}>
+              {content.content && (content.content.includes('youtube.com') || content.content.includes('youtu.be')) ? (
+                <iframe
+                  className="absolute top-0 left-0 w-full h-full"
+                  src={content.content.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
+                  title={content.title}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : content.content && (content.content.endsWith('.mp4') || content.content.endsWith('.webm') || content.content.endsWith('.ogg')) ? (
+                <video 
+                  className="absolute top-0 left-0 w-full h-full"
+                  controls
+                  controlsList="nodownload"
+                >
+                  <source src={content.content} type={`video/${content.content.split('.').pop()}`} />
+                  Your browser does not support the video tag.
+                </video>
+              ) : (
+                <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center text-gray-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  <p className="text-lg font-medium">Video Content</p>
+                  <div className="mt-4 prose prose-invert max-w-none">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {content.content}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex justify-between pt-4 border-t border-dark-200">
+              <Link to={`/topics/${topic._id}`} className="btn btn-outline">
+                Back to Topic
+              </Link>
+              
+              <button
+                onClick={handleContentCompleted}
+                className="btn btn-primary"
+              >
+                Mark as Completed
+              </button>
+            </div>
+          </div>
+        ) : (
+          // Other content types (lesson, article)
+          <div className="space-y-6">
+            {/* Learning Objectives */}
+            {content.objectives && content.objectives.length > 0 && (
+              <motion.div 
+                className="bg-gradient-to-r from-primary-900/20 to-transparent border border-primary-500/30 rounded-lg p-6"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <h3 className="text-lg font-semibold text-primary-300 mb-4 flex items-center">
+                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                    <path fillRule="evenodd" d="M4 5a2 2 0 012-2 1 1 0 000 2 1 1 0 100 2 1 1 0 000 2 1 1 0 000 2 1 1 0 000 2 1 1 0 100 2 1 1 0 000-2 1 1 0 010-2 2 2 0 002-2 1 1 0 100-2 1 1 0 000-2 2 2 0 00-2-2z" clipRule="evenodd" />
+                  </svg>
+                  Learning Objectives
+                </h3>
+                <ul className="space-y-2">
+                  {content.objectives.map((objective, idx) => (
+                    <li key={idx} className="flex items-start text-gray-200">
+                      <span className="inline-block w-2 h-2 rounded-full bg-primary-400 mt-2 mr-3 flex-shrink-0"></span>
+                      <span>{objective}</span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            )}
+
+            {/* Main Content */}
             <div className="prose prose-invert max-w-none leading-relaxed prose-headings:text-white prose-headings:font-semibold prose-headings:mt-8 prose-headings:mb-3 prose-h2:mt-9 prose-h3:mt-7 prose-p:mt-4 prose-li:mt-2 prose-li:text-gray-200 prose-p:text-gray-200 prose-strong:text-white prose-a:text-primary-400 prose-a:no-underline hover:prose-a:text-primary-300 prose-blockquote:border-primary-500/40 prose-blockquote:bg-dark-200/60 prose-blockquote:rounded-xl prose-blockquote:p-4 prose-blockquote:text-gray-200">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {content.content}
               </ReactMarkdown>
             </div>
+
+            {/* Key Points */}
+            {content.keyPoints && content.keyPoints.length > 0 && (
+              <motion.div 
+                className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-6"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <h3 className="text-lg font-semibold text-blue-300 mb-4 flex items-center">
+                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  Key Points to Remember
+                </h3>
+                <ul className="space-y-2">
+                  {content.keyPoints.map((point, idx) => (
+                    <li key={idx} className="flex items-start text-gray-200">
+                      <span className="inline-block w-2 h-2 rounded-full bg-blue-400 mt-2 mr-3 flex-shrink-0"></span>
+                      <span>{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            )}
+
+            {/* Case Studies */}
+            {content.caseStudies && content.caseStudies.length > 0 && (
+              <motion.div 
+                className="bg-amber-900/20 border border-amber-500/30 rounded-lg p-6"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <h3 className="text-lg font-semibold text-amber-300 mb-4 flex items-center">
+                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                  </svg>
+                  Related Case Studies
+                </h3>
+                <ul className="space-y-2">
+                  {content.caseStudies.map((caseStudy, idx) => (
+                    <li key={idx} className="flex items-start text-gray-200">
+                      <span className="inline-block text-amber-400 mr-3">📋</span>
+                      <span>{caseStudy}</span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            )}
             
             <div className="flex justify-between pt-4 border-t border-dark-200">
               <Link to={`/topics/${topic._id}`} className="btn btn-outline">

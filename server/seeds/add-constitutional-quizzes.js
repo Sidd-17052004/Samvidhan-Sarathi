@@ -1,13 +1,13 @@
 // This script adds detailed constitutional quizzes to the database
 // Run with: node add-constitutional-quizzes.js
 
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const mongoose = require('mongoose');
-const Content = require('./models/Content');
-const Topic = require('./models/Topic');
+const Content = require('../models/Content');
+const Topic = require('../models/Topic');
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/constitutional', {
+mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/samvidhan_sarthi', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }).then(() => {

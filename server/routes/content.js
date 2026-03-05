@@ -111,6 +111,7 @@ router.get('/games/all', async (req, res) => {
           const questions = games[0].quiz && games[0].quiz.questions ? games[0].quiz.questions : [];
           result[gameType] = {
             id: games[0]._id,
+            topicId: games[0].topic,
             title: games[0].title,
             data: questions
           };
@@ -122,6 +123,7 @@ router.get('/games/all', async (req, res) => {
                            games[0].gameConfig.config.scenarios : [];
           result[gameType] = {
             id: games[0]._id,
+            topicId: games[0].topic,
             title: games[0].title,
             data: scenarios
           };
@@ -133,6 +135,7 @@ router.get('/games/all', async (req, res) => {
                        games[0].gameConfig.config.pairs : [];
           result[gameType] = {
             id: games[0]._id,
+            topicId: games[0].topic,
             title: games[0].title,
             data: pairs
           };
@@ -142,6 +145,7 @@ router.get('/games/all', async (req, res) => {
                         games[0].gameConfig.config : {};
           result[gameType] = {
             id: games[0]._id,
+            topicId: games[0].topic,
             title: games[0].title,
             data: config
           };
@@ -153,6 +157,7 @@ router.get('/games/all', async (req, res) => {
                         games[0].gameConfig.config.events : [];
           result[gameType] = {
             id: games[0]._id,
+            topicId: games[0].topic,
             title: games[0].title,
             data: events
           };
@@ -160,7 +165,7 @@ router.get('/games/all', async (req, res) => {
         }
       } else {
         // No games found for this type
-        result[gameType] = { id: null, title: null, data: [] };
+        result[gameType] = { id: null, topicId: null, title: null, data: [] };
         console.log(`No ${gameType} games found`);
       }
     }
@@ -254,6 +259,7 @@ router.get('/games/:gameType', async (req, res) => {
       if (gameType === 'quiz') {
         return {
           id: game._id,
+          topicId: game.topic,
           title: game.title,
           description: game.content,
           questions: game.quiz.questions
@@ -261,6 +267,7 @@ router.get('/games/:gameType', async (req, res) => {
       } else if (gameType === 'scenario') {
         return {
           id: game._id,
+          topicId: game.topic,
           title: game.title,
           description: game.content,
           scenarios: game.gameConfig.config.scenarios
@@ -268,6 +275,7 @@ router.get('/games/:gameType', async (req, res) => {
       } else {
         return {
           id: game._id,
+          topicId: game.topic,
           title: game.title,
           description: game.content,
           config: game.gameConfig.config
@@ -485,10 +493,24 @@ router.get('/search', async (req, res) => {
 // Track content completion (requires auth)
 router.post('/track', authenticateToken, async (req, res) => {
   try {
-    const { topicId, contentId, type, score, completed } = req.body;
+    let { topicId, contentId, type, score, completed } = req.body;
     
-    // Get topic to get country
-    const topic = await Topic.findById(topicId);
+    // If topicId is missing or invalid, try to get it from the content
+    let topic = null;
+    if (topicId && topicId.match(/^[0-9a-fA-F]{24}$/)) {
+      topic = await Topic.findById(topicId);
+    }
+    
+    // If topic not found from topicId, try to find it from contentId
+    if (!topic && contentId && contentId.match(/^[0-9a-fA-F]{24}$/)) {
+      const contentDoc = await Content.findById(contentId);
+      if (contentDoc && contentDoc.topic) {
+        topic = await Topic.findById(contentDoc.topic);
+        if (topic) {
+          topicId = topic._id.toString();
+        }
+      }
+    }
     
     if (!topic) {
       return res.status(404).json({ message: 'Topic not found' });

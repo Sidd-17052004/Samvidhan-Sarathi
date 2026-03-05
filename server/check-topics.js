@@ -1,53 +1,92 @@
-// This script checks if topics with custom IDs exist in the database
+// Check what data exists in the database
 // Run with: node check-topics.js
 
 require('dotenv').config();
 const mongoose = require('mongoose');
 const Topic = require('./models/Topic');
+const Content = require('./models/Content');
+const Badge = require('./models/Badge');
+const User = require('./models/User');
+const Progress = require('./models/Progress');
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/samvidhan_sarthi', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => {
-  console.log('Connected to MongoDB');
-  checkTopics();
-}).catch(err => {
-  console.error('Error connecting to MongoDB:', err);
-  process.exit(1);
-});
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/samvidhan_sarthi';
 
-// Function to check topics
-async function checkTopics() {
+async function checkDatabase() {
   try {
-    // Get all topics
-    const topics = await Topic.find({});
-    console.log(`Found ${topics.length} topics in the database`);
-    
-    if (topics.length > 0) {
-      console.log('\nSample topics:');
-      topics.slice(0, 3).forEach(topic => {
-        console.log(`- ID: ${topic._id}`);
-        console.log(`  CustomID: ${topic.customId}`);
-        console.log(`  Title: ${topic.title}`);
-        console.log('');
+    await mongoose.connect(MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    });
+    console.log('✅ Connected to MongoDB:', MONGO_URI);
+    console.log('\n' + '='.repeat(60));
+    console.log('  DATABASE STATUS CHECK');
+    console.log('='.repeat(60));
+
+    // --- Topics ---
+    const topicCount = await Topic.countDocuments();
+    console.log(`\n📚 TOPICS: ${topicCount}`);
+    if (topicCount > 0) {
+      const topics = await Topic.find({}).sort({ order: 1 });
+      topics.forEach(t => {
+        console.log(`   [${t.customId || t._id}] ${t.title} (${t.difficulty}, ${t.country})`);
       });
-      
-      // Check specific IDs that are failing
-      console.log('Checking specific topic IDs that are failing:');
-      const l01 = await Topic.findOne({ customId: 'l0-1' });
-      console.log(`Topic with customId 'l0-1': ${l01 ? 'Found' : 'Not found'}`);
-      
-      const l02 = await Topic.findOne({ customId: 'l0-2' });
-      console.log(`Topic with customId 'l0-2': ${l02 ? 'Found' : 'Not found'}`);
     } else {
-      console.log('No topics found in the database. You need to seed the database first.');
+      console.log('   ⚠️ No topics found! Run: node seed-database.js');
     }
-    
-    // Close the connection
-    mongoose.connection.close();
+
+    // --- Content ---
+    const contentCount = await Content.countDocuments();
+    const lessonCount = await Content.countDocuments({ type: 'lesson' });
+    const quizCount = await Content.countDocuments({ type: 'quiz' });
+    const gameCount = await Content.countDocuments({ type: 'game' });
+    console.log(`\n📝 CONTENT: ${contentCount} total`);
+    console.log(`   Lessons: ${lessonCount}`);
+    console.log(`   Quizzes: ${quizCount}`);
+    console.log(`   Games:   ${gameCount}`);
+
+    if (gameCount > 0) {
+      const games = await Content.find({ type: 'game' });
+      console.log('\n   🎮 Game types:');
+      games.forEach(g => {
+        const gType = g.gameConfig?.type || 'unknown';
+        console.log(`      [${gType}] ${g.title}`);
+      });
+    }
+
+    // --- Badges ---
+    const badgeCount = await Badge.countDocuments();
+    console.log(`\n🏆 BADGES: ${badgeCount}`);
+    if (badgeCount > 0) {
+      const badges = await Badge.find({});
+      badges.forEach(b => {
+        console.log(`   [${b.rarity}] ${b.name} - ${b.description}`);
+      });
+    }
+
+    // --- Users ---
+    const userCount = await User.countDocuments();
+    console.log(`\n👤 USERS: ${userCount}`);
+
+    // --- Progress ---
+    const progressCount = await Progress.countDocuments();
+    console.log(`📊 PROGRESS ENTRIES: ${progressCount}`);
+
+    console.log('\n' + '='.repeat(60));
+    if (topicCount === 0 || contentCount === 0) {
+      console.log('⚠️  Database is empty! Run this to seed data:');
+      console.log('    cd server');
+      console.log('    node seed-database.js');
+    } else {
+      console.log('✅ Database has data and is ready!');
+    }
+    console.log('='.repeat(60));
+
   } catch (error) {
-    console.error('Error checking topics:', error);
-    mongoose.connection.close();
+    console.error('❌ Error checking database:', error.message);
+  } finally {
+    await mongoose.connection.close();
+    console.log('\n📡 MongoDB connection closed');
   }
-} 
+}
+
+checkDatabase();

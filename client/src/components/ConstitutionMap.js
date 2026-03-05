@@ -1,59 +1,68 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { AuthContext } from '../contexts/AuthContext';
 
 const ConstitutionMap = ({ country = 'India' }) => {
   const [hoveredSection, setHoveredSection] = useState(null);
   const [selectedLevel, setSelectedLevel] = useState('level0');
   const [expandedView, setExpandedView] = useState(false);
+  const { authAxios } = useContext(AuthContext);
+  const [topicsByLevel, setTopicsByLevel] = useState({});
+  const [loadingTopics, setLoadingTopics] = useState(true);
 
-  // Constitution structure based on levels
-  const constitutionStructure = {
-    India: {
-      level0: [
-        { id: 'l0-1', title: 'Preamble', color: '#3498db', linkId: 'l0-1' },
-        { id: 'l0-2', title: 'History', color: '#2ecc71', linkId: 'l0-2' },
-        { id: 'l0-3', title: 'Features', color: '#9b59b6', linkId: 'l0-3' }
-      ],
-      level1: [
-        { id: 'l1-1', title: 'Part I: Union and Territory', color: '#e74c3c', linkId: 'l1-1' },
-        { id: 'l1-2', title: 'Part II: Citizenship', color: '#f39c12', linkId: 'l1-2' },
-        { id: 'l1-3', title: 'Part III: Fundamental Rights', color: '#1abc9c', linkId: 'l1-2' },
-        { id: 'l1-4', title: 'Part IV: Directive Principles', color: '#3498db', linkId: 'l1-3' },
-        { id: 'l1-5', title: 'Part IV-A: Fundamental Duties', color: '#2ecc71', linkId: 'l1-4' },
-        { id: 'l1-6', title: 'Part V: Union Government', color: '#9b59b6', linkId: 'l1-5' },
-        { id: 'l1-7', title: 'Part VI: State Government', color: '#e67e22', linkId: 'l1-6' }
-      ],
-      level2: [
-        { id: 'l2-1', title: 'Schedule 1: States and UTs', color: '#3498db', linkId: 'l2-1' },
-        { id: 'l2-2', title: 'Schedule 7: Division of Powers', color: '#2ecc71', linkId: 'l2-2' },
-        { id: 'l2-3', title: 'Schedule 8: Official Languages', color: '#9b59b6', linkId: 'l2-3' },
-        { id: 'l2-4', title: 'Schedule 9 & 10: Special Acts', color: '#e74c3c', linkId: 'l2-4' }
-      ],
-      level3: [
-        { id: 'l3-1', title: '1st Amendment (1951)', color: '#3498db', linkId: 'l3-1' },
-        { id: 'l3-2', title: '42nd Amendment (1976)', color: '#e74c3c', linkId: 'l3-2' },
-        { id: 'l3-3', title: '73rd & 74th Amendments', color: '#2ecc71', linkId: 'l3-3' },
-        { id: 'l3-4', title: '101st Amendment (GST)', color: '#f39c12', linkId: 'l3-4' }
-      ],
-      level4: [
-        { id: 'l4-1', title: 'Basic Structure Doctrine', color: '#9b59b6', linkId: 'l4-1' },
-        { id: 'l4-2', title: 'Judicial Review', color: '#e74c3c', linkId: 'l4-2' },
-        { id: 'l4-3', title: 'Constitutional Interpretation', color: '#3498db', linkId: 'l4-3' }
-      ]
-    }
-  };
+  // Default colors for topics
+  const defaultColors = ['#3498db', '#2ecc71', '#9b59b6', '#e74c3c', '#f39c12', '#1abc9c', '#e67e22'];
 
-  // Get sections for current level and country
+  // Fetch real topics from API
+  useEffect(() => {
+    const fetchTopics = async () => {
+      try {
+        setLoadingTopics(true);
+        const response = await authAxios.get(`/content/topics/${encodeURIComponent(country)}`);
+        const allTopics = response.data || [];
+        
+        // Group topics by level prefix
+        const grouped = { level0: [], level1: [], level2: [], level3: [], level4: [] };
+        allTopics.forEach((topic) => {
+          const cid = topic.customId || '';
+          let level = null;
+          if (cid.startsWith('l0-')) level = 'level0';
+          else if (cid.startsWith('l1-')) level = 'level1';
+          else if (cid.startsWith('l2-')) level = 'level2';
+          else if (cid.startsWith('l3-')) level = 'level3';
+          else if (cid.startsWith('l4-')) level = 'level4';
+          
+          if (level) {
+            grouped[level].push({
+              id: topic.customId,
+              title: topic.title,
+              color: topic.color || defaultColors[grouped[level].length % defaultColors.length],
+              linkId: topic.customId
+            });
+          }
+        });
+        
+        setTopicsByLevel(grouped);
+      } catch (err) {
+        console.error('Error fetching topics for map:', err);
+      } finally {
+        setLoadingTopics(false);
+      }
+    };
+    fetchTopics();
+  }, [authAxios, country]);
+
+  // Get sections for current level
   const getCurrentSections = () => {
-    return constitutionStructure[country]?.[selectedLevel] || [];
+    return topicsByLevel[selectedLevel] || [];
   };
 
-  // Get total sections count for current country
+  // Get total sections count
   const getTotalSectionsCount = () => {
     let count = 0;
-    Object.keys(constitutionStructure[country] || {}).forEach(level => {
-      count += constitutionStructure[country][level].length;
+    Object.keys(topicsByLevel).forEach(level => {
+      count += topicsByLevel[level].length;
     });
     return count;
   };

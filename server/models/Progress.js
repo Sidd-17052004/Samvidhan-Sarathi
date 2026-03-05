@@ -25,7 +25,7 @@ const progressSchema = new mongoose.Schema(
     quizScores: [{
       quizId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Quiz'
+        ref: 'Content'
       },
       score: {
         type: Number,
@@ -40,7 +40,7 @@ const progressSchema = new mongoose.Schema(
     activities: [{
       activityId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Activity'
+        ref: 'Content'
       },
       completed: {
         type: Boolean,

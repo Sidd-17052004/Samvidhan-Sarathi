@@ -23,6 +23,9 @@ const Profile = () => {
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const [passwordSuccess, setPasswordSuccess] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   // Handle form input changes
   const handleChange = (e) => {
@@ -141,6 +144,66 @@ const Profile = () => {
     return 'U';
   };
 
+  // Get avatar URL
+  const getAvatarUrl = () => {
+    if (user?.profilePicture) {
+      // If it's already a full URL, use as-is; otherwise prepend API base
+      if (user.profilePicture.startsWith('http')) return user.profilePicture;
+      return `${API_URL}${user.profilePicture}`;
+    }
+    return null;
+  };
+
+  // Handle avatar upload
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setError('Please upload a valid image file (PNG, JPEG, GIF, or WebP)');
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setError('Image must be smaller than 2MB');
+      return;
+    }
+
+    setUploadingAvatar(true);
+    setError(null);
+
+    try {
+      // Convert file to base64
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const res = await authAxios.post('/users/upload-avatar', {
+            image: reader.result
+          });
+          // Update the user context with new profile picture
+          await updateProfile({ profilePicture: res.data.profilePicture });
+          setUpdateSuccess(true);
+        } catch (err) {
+          const message = err.response?.data?.message || 'Failed to upload avatar';
+          setError(message);
+        } finally {
+          setUploadingAvatar(false);
+        }
+      };
+      reader.onerror = () => {
+        setError('Failed to read image file');
+        setUploadingAvatar(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      setError('Failed to upload avatar');
+      setUploadingAvatar(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <h1 className="text-2xl font-bold text-white">Profile Settings</h1>
@@ -185,12 +248,49 @@ const Profile = () => {
         {/* Left column - User info */}
         <div className="md:col-span-1">
           <div className="card flex flex-col items-center py-8">
-            <div className="h-24 w-24 rounded-full bg-primary-600 flex items-center justify-center text-white text-4xl font-medium mb-4">
-              {getUserInitials()}
+            {/* Avatar with upload */}
+            <div className="relative group mb-4">
+              {getAvatarUrl() ? (
+                <img
+                  src={getAvatarUrl()}
+                  alt="Profile"
+                  className="h-24 w-24 rounded-full object-cover border-2 border-primary-600"
+                />
+              ) : (
+                <div className="h-24 w-24 rounded-full bg-primary-600 flex items-center justify-center text-white text-4xl font-medium">
+                  {getUserInitials()}
+                </div>
+              )}
+              
+              {/* Upload overlay */}
+              <label
+                className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity duration-200"
+                title="Change profile picture"
+              >
+                {uploadingAvatar ? (
+                  <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                  </svg>
+                ) : (
+                  <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                )}
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+                  className="hidden"
+                  onChange={handleAvatarUpload}
+                  disabled={uploadingAvatar}
+                />
+              </label>
             </div>
             
             <h2 className="text-xl font-bold text-white">{user?.name || user?.username}</h2>
             <p className="text-gray-400">{user?.email}</p>
+            <p className="text-xs text-gray-500 mt-1">Hover avatar to change photo</p>
             
             <div className="mt-6">
               <button

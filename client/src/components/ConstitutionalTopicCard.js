@@ -20,13 +20,32 @@ const ConstitutionalTopicCard = ({ topic }) => {
     return colors[topic.category] || colors.default;
   };
 
+  // Get an icon/emoji for the topic based on category
+  const getTopicIcon = () => {
+    const icons = {
+      'Fundamental Rights': '\u2696\ufe0f',
+      'Directive Principles': '\ud83d\udcdc',
+      'Federal Structure': '\ud83c\udfe9',
+      'Constitutional Bodies': '\ud83c\udfdb\ufe0f',
+      'Amendments': '\u270f\ufe0f',
+      'Emergency Provisions': '\ud83d\udea8',
+      'Historical': '\ud83d\udcc5',
+      'Judiciary': '\ud83d\udd28',
+      'Preamble': '\ud83d\udcd6',
+      'Governance': '\ud83c\udfe2',
+      'Elections': '\ud83d\uddf3\ufe0f',
+      'default': '\ud83d\udcd8'
+    };
+    return icons[topic.category] || icons.default;
+  };
+
   return (
     <motion.div 
       className="h-full"
       whileHover={{ y: -5, transition: { duration: 0.2 } }}
     >
       <Link 
-        to={`/topics/${topic._id}`} 
+        to={`/topics/${topic.customId || topic._id}`} 
         className="block h-full"
       >
         <div 
@@ -37,7 +56,10 @@ const ConstitutionalTopicCard = ({ topic }) => {
         >
           <div className="p-5 flex-grow">
             <div className="flex justify-between items-start mb-3">
-              <h3 className="text-lg font-semibold text-white">{topic.title}</h3>
+              <div className="flex items-center gap-2">
+                <span className="text-xl" role="img" aria-label={topic.category || 'topic'}>{getTopicIcon()}</span>
+                <h3 className="text-lg font-semibold text-white">{topic.title}</h3>
+              </div>
               {topic.difficulty && (
                 <span className={`text-xs px-2 py-1 rounded ${
                   topic.difficulty === 'Beginner' ? 'bg-green-900/30 text-green-400' :

@@ -1,9 +1,9 @@
 // This script seeds the mock topics from ConstitutionalTopics.js into the database
 // Run with: node seed-mock-topics.js
 
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const mongoose = require('mongoose');
-const Topic = require('./models/Topic');
+const Topic = require('../models/Topic');
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/samvidhan_sarthi', {

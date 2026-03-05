@@ -1,45 +1,47 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { AuthContext } from '../contexts/AuthContext';
 
 const TopicDetail = () => {
   const { topicId } = useParams();
   const { authAxios } = useContext(AuthContext);
+  const location = useLocation();
   const [topic, setTopic] = useState(null);
   const [content, setContent] = useState([]);
   const [progress, setProgress] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      // Use the correct API endpoint for topic details
+      const topicResponse = await authAxios.get(`/content/topics/detail/${topicId}`);
+      setTopic(topicResponse.data);
+      
+      // Fetch content for this topic
+      const contentResponse = await authAxios.get(`/content/topics/${topicId}/content`);
+      setContent(contentResponse.data);
+      
+      // Fetch user progress for this topic
+      const progressResponse = await authAxios.get(`/progress/${topicId}`);
+      setProgress(progressResponse.data);
+    } catch (err) {
+      console.error('Error fetching topic data:', err);
+      setError('Failed to load topic information');
+    } finally {
+      setLoading(false);
+    }
+  }, [topicId, authAxios]);
+
+  // Re-fetch data whenever user navigates to this page (e.g. after completing content)
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        
-        // Use the correct API endpoint for topic details
-        const topicResponse = await authAxios.get(`/content/topics/detail/${topicId}`);
-        setTopic(topicResponse.data);
-        
-        // Fetch content for this topic
-        const contentResponse = await authAxios.get(`/content/topics/${topicId}/content`);
-        setContent(contentResponse.data);
-        
-        // Fetch user progress for this topic
-        const progressResponse = await authAxios.get(`/progress/${topicId}`);
-        setProgress(progressResponse.data);
-      } catch (err) {
-        console.error('Error fetching topic data:', err);
-        setError('Failed to load topic information');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
     if (topicId) {
       fetchData();
     }
-  }, [topicId, authAxios]);
+  }, [topicId, fetchData, location.key]);
 
   // Helper function to get icon for content type
   const getContentTypeIcon = (type) => {

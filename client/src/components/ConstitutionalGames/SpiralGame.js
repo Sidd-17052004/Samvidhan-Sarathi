@@ -424,11 +424,14 @@ const styleSheet = `
   }
 `;
 
-// Inject CSS
+// Inject CSS (only once)
 if (typeof document !== 'undefined') {
-  const style = document.createElement('style');
-  style.innerHTML = styleSheet;
-  document.head.appendChild(style);
+  if (!document.getElementById('spiral-game-styles')) {
+    const style = document.createElement('style');
+    style.id = 'spiral-game-styles';
+    style.innerHTML = styleSheet;
+    document.head.appendChild(style);
+  }
 }
 
 export default ConstitutionSpiralGame; 

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { AuthContext } from '../contexts/AuthContext';
 
@@ -45,28 +45,32 @@ const StatCard = ({ title, value, icon, color = 'primary' }) => {
 
 const Dashboard = () => {
   const { user, authAxios, updateProfile } = useContext(AuthContext);
+  const location = useLocation();
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCountry, setSelectedCountry] = useState(user?.preferredCountry || 'India');
   const [isUpdatingCountry, setIsUpdatingCountry] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        const response = await authAxios.get('/users/dashboard');
-        setDashboardData(response.data);
-      } catch (err) {
-        console.error('Error fetching dashboard data:', err);
-        setError('Failed to load dashboard data');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchDashboardData();
+  const fetchDashboardData = useCallback(async (country) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await authAxios.get(`/users/dashboard?country=${encodeURIComponent(country)}`);
+      setDashboardData(response.data);
+    } catch (err) {
+      console.error('Error fetching dashboard data:', err);
+      setError('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
   }, [authAxios]);
+  
+  // Re-fetch dashboard data whenever the user navigates to this page, or country changes
+  useEffect(() => {
+    fetchDashboardData(selectedCountry);
+  }, [fetchDashboardData, selectedCountry, location.key, refreshKey]);
   
   if (loading) {
     return (
@@ -91,11 +95,17 @@ const Dashboard = () => {
     try {
       setIsUpdatingCountry(true);
       await updateProfile({ preferredCountry: newCountry });
+      // Dashboard data will be re-fetched automatically via useEffect dependency on selectedCountry
     } catch (err) {
       console.error('Error updating preferred country:', err);
     } finally {
       setIsUpdatingCountry(false);
     }
+  };
+
+  // Manual refresh function
+  const handleRefresh = () => {
+    setRefreshKey(prev => prev + 1);
   };
 
   return (
@@ -106,6 +116,15 @@ const Dashboard = () => {
           <p className="text-sm text-gray-400 mt-1">Track your learning progress and recent activity.</p>
         </div>
         <div className="flex items-center space-x-2">
+          <button
+            onClick={handleRefresh}
+            className="p-2 rounded-lg bg-dark-200 hover:bg-dark-100 text-gray-400 hover:text-white transition-colors"
+            title="Refresh dashboard"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
           <select 
             className="input bg-dark-200 text-sm"
             value={selectedCountry}

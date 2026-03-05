@@ -27,6 +27,67 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
+// Get dashboard summary stats for user
+router.get('/summary', authenticateToken, async (req, res) => {
+  try {
+    const { country } = req.query;
+    
+    const filter = { user: req.user.id };
+    if (country) {
+      filter.country = country;
+    }
+    
+    const progress = await Progress.find(filter).populate('topic');
+    
+    // Filter out entries with deleted topics
+    const validProgress = progress.filter(p => p.topic != null);
+    
+    const totalStarted = validProgress.length;
+    const totalCompleted = validProgress.filter(p => p.completionPercentage === 100).length;
+    const overallProgress = totalStarted > 0
+      ? Math.round(validProgress.reduce((sum, p) => sum + p.completionPercentage, 0) / totalStarted)
+      : 0;
+    
+    const allQuizScores = validProgress.flatMap(p => p.quizScores.map(q => q.score));
+    const averageQuizScore = allQuizScores.length > 0
+      ? Math.round(allQuizScores.reduce((sum, s) => sum + s, 0) / allQuizScores.length)
+      : 0;
+    
+    const totalActivities = validProgress.reduce((sum, p) => sum + p.activities.filter(a => a.completed).length, 0);
+    const totalQuizzes = validProgress.reduce((sum, p) => sum + p.quizScores.length, 0);
+    
+    const recentActivities = validProgress
+      .flatMap(p => p.activities.map(a => ({
+        topicId: p.topic._id,
+        topicTitle: p.topic.title,
+        completed: a.completed,
+        score: a.score,
+        date: a.date
+      })))
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, 10);
+    
+    res.json({
+      totalStarted,
+      totalCompleted,
+      overallProgress,
+      averageQuizScore,
+      totalActivities,
+      totalQuizzes,
+      recentActivities,
+      topicProgress: validProgress.map(p => ({
+        topicId: p.topic._id,
+        topicTitle: p.topic.title,
+        completionPercentage: p.completionPercentage,
+        lastUpdated: p.lastUpdated
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching progress summary:', error);
+    res.status(500).json({ message: 'Error fetching progress summary', error: error.message });
+  }
+});
+
 // Get user progress for a specific topic
 router.get('/:topicId', authenticateToken, async (req, res) => {
   try {

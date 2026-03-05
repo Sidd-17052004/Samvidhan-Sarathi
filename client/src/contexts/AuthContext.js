@@ -11,10 +11,21 @@ export const AuthProvider = ({ children }) => {
   
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
   
+  // Helper to get the token from either storage
+  const getToken = () => {
+    return localStorage.getItem('token') || sessionStorage.getItem('token');
+  };
+
+  // Helper to remove the token from both storages
+  const removeToken = () => {
+    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
+  };
+
   // Check if the user has a valid token on initial load
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       
       if (!token) {
         setLoading(false);
@@ -28,7 +39,7 @@ export const AuthProvider = ({ children }) => {
         
         if (decodedToken.exp < currentTime) {
           // Token is expired
-          localStorage.removeItem('token');
+          removeToken();
           setLoading(false);
           return;
         }
@@ -43,7 +54,7 @@ export const AuthProvider = ({ children }) => {
         setUser(response.data);
       } catch (error) {
         console.error('Auth check error:', error);
-        localStorage.removeItem('token');
+        removeToken();
       } finally {
         setLoading(false);
       }
@@ -74,14 +85,19 @@ export const AuthProvider = ({ children }) => {
   };
   
   // Login a user
-  const login = async (credentials) => {
+  const login = async (credentials, rememberMe = false) => {
     try {
       setLoading(true);
       setError(null);
       
       const response = await axios.post(`${API_URL}/auth/login`, credentials);
       
-      localStorage.setItem('token', response.data.token);
+      // Store token based on Remember Me preference
+      if (rememberMe) {
+        localStorage.setItem('token', response.data.token);
+      } else {
+        sessionStorage.setItem('token', response.data.token);
+      }
       setUser(response.data.user);
       
       return response.data;
@@ -96,7 +112,7 @@ export const AuthProvider = ({ children }) => {
   
   // Logout a user
   const logout = () => {
-    localStorage.removeItem('token');
+    removeToken();
     setUser(null);
   };
   
@@ -105,7 +121,7 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       
-      const token = localStorage.getItem('token');
+      const token = getToken();
       
       const response = await axios.put(`${API_URL}/users/profile`, profileData, {
         headers: {
@@ -132,7 +148,7 @@ export const AuthProvider = ({ children }) => {
   // Add auth token to all requests
   authAxios.interceptors.request.use(
     (config) => {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       if (token) {
         config.headers['Authorization'] = `Bearer ${token}`;
       }
